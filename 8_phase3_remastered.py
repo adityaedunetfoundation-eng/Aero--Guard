@@ -45,8 +45,8 @@ intended_trajectory = "IDLE"
 camera_mode_request = None
 
 # --- TELEMETRY DATA ---
-gps_lat = 40.6413 
-gps_lon = -73.7781
+gps_lat = None
+gps_lon = None
 
 # --- CONFIGURATION ---
 VOICE_PROFILE = "en-IN-NeerjaNeural"
@@ -256,7 +256,7 @@ def vision_engine():
         actual_fps = 1 / (curr_time - prev_time) if (curr_time - prev_time) > 0 else 0
         prev_time = curr_time
 
-        if latest_command in ["MOVE_FORWARD", "MOVE_BACKWARD", "TURN_LEFT", "TURN_RIGHT"]:
+        if latest_command in ["MOVE_FORWARD", "MOVE_BACKWARD", "TURN_LEFT", "TURN_RIGHT"] and gps_lat is not None and gps_lon is not None:
             gps_lat += 0.00002 if latest_command == "MOVE_FORWARD" else -0.00002
             gps_lon += 0.00001 if latest_command == "TURN_RIGHT" else -0.00001
 
@@ -279,7 +279,8 @@ def vision_engine():
             
         bat_color = (0, 255, 0) if battery_level > 20 else (0, 0, 255)
         cv2.putText(annotated_frame, f"PWR: {battery_level:.0f}% {power_status}", (20, telemetry_y + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, bat_color, 2)
-        cv2.putText(annotated_frame, f"GPS: {gps_lat:.5f}, {gps_lon:.5f}", (20, telemetry_y + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 200, 0), 2)
+        gps_text = f"GPS: {gps_lat:.5f}, {gps_lon:.5f}" if gps_lat is not None and gps_lon is not None else "GPS: UNAVAILABLE"
+        cv2.putText(annotated_frame, gps_text, (20, telemetry_y + 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 200, 0), 2)
 
         cx, cy = w // 2, h - 100 
         

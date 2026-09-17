@@ -88,7 +88,7 @@ def status():
         "mission": "STANDBY",
         "source": "Simulation feed",
         "battery": 87,
-        "gps": {"lat": 40.6413, "lon": -73.7781},
+        "gps": None,
         "uplink_ms": 42,
     })
 
