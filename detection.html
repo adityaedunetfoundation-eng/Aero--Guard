@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Detection | AeroGuard</title>
   <link rel="stylesheet" href="portal.css">
+  <style>.video-box .track { display: none; }.video-box .track.is-visible { display: block; }</style>
 </head>
 <body>
   <header class="topbar wrap">
@@ -21,13 +22,13 @@
     </section>
     <section class="video-box">
       <video id="patrol" controls muted loop playsinline poster="assets/bg.png"></video>
-      <div class="track"></div><div class="track" style="left:23%;top:51%;width:15%;height:18%"></div>
+      <div class="track" id="track-one"></div><div class="track" id="track-two" style="left:23%;top:51%;width:15%;height:18%"></div>
     </section>
     <label class="drop" for="video-input">Choose a patrol video to analyse<input id="video-input" type="file" accept="video/mp4,video/webm,video/quicktime"></label>
     <div class="stats">
       <div class="stat"><b id="state">READY</b><span>Analysis state</span></div>
-      <div class="stat"><b id="tracked-count">02</b><span>Tracked objects</span></div>
-      <div class="stat"><b id="confidence">94.8%</b><span>Confidence</span></div>
+      <div class="stat"><b id="tracked-count">--</b><span>Tracked objects</span></div>
+      <div class="stat"><b id="confidence">--</b><span>Confidence</span></div>
       <div class="stat"><b id="frames">24 FPS</b><span>Target stream</span></div>
     </div>
     <p id="api-note" class="mono" style="color:var(--muted);margin-top:18px">API: CHECKING LOCAL VISION SERVICE...</p>
@@ -62,6 +63,8 @@
         document.getElementById('tracked-count').textContent = String(result.count).padStart(2, '0');
         document.getElementById('confidence').textContent = `${result.highest_confidence}%`;
         document.getElementById('frames').textContent = `${result.frames_sampled} SAMPLES`;
+        document.getElementById('track-one').classList.toggle('is-visible', result.count > 0);
+        document.getElementById('track-two').classList.toggle('is-visible', result.count > 1);
         note.textContent = 'API: VIDEO ANALYSIS COMPLETE';
         note.style.color = 'var(--lime)';
       } catch (error) {
