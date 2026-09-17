@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AeroGuard | Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#091114; --panel:#111b20; --panel2:#17252b; --text:#e9f1f5; --muted:#82969f; --line:rgba(175,205,214,.13); --cyan:#68e1dc; --lime:#c5f36b; --orange:#ffae5c; --red:#ff6e6e; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--text); background:var(--bg); font-family:Manrope, sans-serif; }
+    body:before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.3; background:radial-gradient(circle at 80% 8%, rgba(75,194,190,.17), transparent 27%), linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px); background-size:auto,42px 42px,42px 42px; }
+    button, input { font:inherit; }
+    button { cursor:pointer; }
+    .shell { display:grid; grid-template-columns:235px 1fr; min-height:100vh; }
+    aside { padding:28px 20px; background:#0c171b; border-right:1px solid var(--line); position:relative; z-index:1; }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom:48px; }
+    .mark { width:39px; height:39px; display:grid; place-items:center; border:1px solid var(--cyan); border-radius:11px; color:var(--cyan); font-size:20px; box-shadow:0 0 24px rgba(104,225,220,.14); }
+    .brand strong { display:block; font-size:15px; letter-spacing:.13em; line-height:1; } .brand strong span { color:var(--cyan); } .brand small { color:#6f858e; font:9px 'DM Mono'; letter-spacing:.15em; }
+    .section-label,.eyebrow,.mono,.metric-label { font-family:'DM Mono', monospace; text-transform:uppercase; letter-spacing:.12em; }
+    .section-label { color:#526a73; font-size:9px; margin:0 0 10px 4px; }
+    .source-select { width:100%; color:var(--text); background:#142329; border:1px solid var(--line); border-radius:6px; padding:11px 10px; outline:0; margin-bottom:24px; }
+    .action { width:100%; padding:11px; margin:5px 0; border-radius:6px; color:var(--text); background:#18272d; border:1px solid var(--line); font-weight:700; font-size:12px; transition:.2s; } .action:hover { border-color:var(--cyan); color:var(--cyan); transform:translateY(-1px); } .action.primary { color:#092024; background:var(--cyan); border-color:var(--cyan); } .action.danger { color:var(--red); border-color:rgba(255,110,110,.28); }
+    .side-note { position:absolute; left:20px; right:20px; bottom:26px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.8; } .side-note b { color:var(--text); }
+    main { width:min(1500px,100%); padding:34px 42px 50px; position:relative; z-index:1; }
+    .top { display:flex; justify-content:space-between; align-items:end; margin-bottom:29px; } .eyebrow { color:var(--cyan); font-size:10px; margin-bottom:9px; } h1 { margin:0; font-size:clamp(29px,3vw,43px); letter-spacing:-.055em; } .sub { margin:8px 0 0; color:var(--muted); font-size:13px; } .pill { padding:8px 12px; border:1px solid rgba(197,243,107,.4); background:rgba(197,243,107,.08); color:var(--lime); border-radius:5px; font:10px 'DM Mono'; letter-spacing:.08em; }
+    .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; } .panel { background:linear-gradient(145deg,rgba(23,37,43,.97),rgba(14,25,30,.97)); border:1px solid var(--line); border-radius:12px; padding:19px; } .metric { min-height:116px; } .metric-label { color:var(--muted); font-size:9px; } .metric-value { margin:16px 0 3px; font-weight:700; font-size:27px; letter-spacing:-.05em; } .metric-foot { color:var(--lime); font:10px 'DM Mono'; }
+    .columns { display:grid; grid-template-columns:1.55fr 1fr; gap:20px; margin-top:20px; } .lower { display:grid; grid-template-columns:1.25fr 1fr; gap:20px; margin-top:20px; }
+    .panel-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-size:13px; font-weight:700; } .panel-head small { color:var(--muted); font:10px 'DM Mono'; letter-spacing:.08em; }
+    .camera { height:440px; padding:0; overflow:hidden; position:relative; background:#081013; } .camera img,.camera video { width:100%; height:100%; object-fit:cover; opacity:.72; } .camera-overlay { position:absolute; inset:0; padding:20px; display:flex; flex-direction:column; justify-content:space-between; background:linear-gradient(180deg,rgba(8,16,19,.22),rgba(8,16,19,.8)); pointer-events:none; } .tag { display:inline-block; width:max-content; padding:5px 8px; color:var(--cyan); border:1px solid rgba(104,225,220,.5); background:rgba(8,16,19,.75); font:10px 'DM Mono'; } .camera h3 { margin:14px 0 4px; font-size:16px; } .camera p { margin:0; color:var(--muted); font:10px 'DM Mono'; } .scan { height:1px; margin-top:88px; background:var(--cyan); box-shadow:0 0 12px var(--cyan); opacity:.75; animation:scan 3s ease-in-out infinite; } @keyframes scan { 0%,100% { opacity:.25; transform:translateY(-12px); } 50% { opacity:1; transform:translateY(20px); } } .detection-box { position:absolute; width:22%; height:27%; left:52%; top:34%; border:1px solid var(--lime); box-shadow:0 0 18px rgba(197,243,107,.34); animation:boxPulse 2.4s ease-in-out infinite; } .detection-box:before { content:'PERSON 96.2%'; position:absolute; top:-19px; left:-1px; padding:3px 5px; color:#0a1719; background:var(--lime); font:9px 'DM Mono'; } .detection-box.second { width:15%; height:18%; left:23%; top:49%; border-color:var(--orange); animation-delay:.7s; } .detection-box.second:before { content:'FOD 88.4%'; background:var(--orange); } @keyframes boxPulse { 0%,100% { opacity:.5; transform:scale(.98); } 50% { opacity:1; transform:scale(1.02); } } .analysis-bar { position:absolute; left:20px; right:20px; bottom:68px; height:3px; background:rgba(104,225,220,.2); overflow:hidden; } .analysis-bar:after { content:''; display:block; width:35%; height:100%; background:var(--cyan); box-shadow:0 0 12px var(--cyan); animation:progress 2.2s ease-in-out infinite; } @keyframes progress { from { transform:translateX(-120%); } to { transform:translateX(330%); } }
+    .radar { width:min(250px,70vw); aspect-ratio:1; margin:13px auto 19px; border:1px solid rgba(104,225,220,.65); border-radius:50%; position:relative; background:repeating-radial-gradient(circle,transparent 0 33px,rgba(104,225,220,.18) 34px 35px),linear-gradient(90deg,transparent 49.6%,rgba(104,225,220,.22) 50%,transparent 50.4%),linear-gradient(0deg,transparent 49.6%,rgba(104,225,220,.22) 50%,transparent 50.4%); overflow:hidden; } .radar:before { content:""; position:absolute; width:50%; height:1px; top:50%; left:50%; background:var(--cyan); transform-origin:left; transform:rotate(-30deg); box-shadow:0 0 9px var(--cyan); } .radar:after { content:""; position:absolute; width:7px; height:7px; top:calc(50% - 3px); left:calc(50% - 3px); background:var(--lime); border-radius:50%; box-shadow:0 0 12px var(--lime); } .dot { position:absolute; width:7px; height:7px; border-radius:50%; background:var(--orange); box-shadow:0 0 12px var(--orange); } .dot.one { left:29%; top:31%; } .dot.two { right:22%; bottom:27%; background:var(--red); box-shadow:0 0 12px var(--red); }
+    .row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); color:var(--muted); font-size:12px; } .row:last-child { border-bottom:0; } .row b { color:var(--text); font-size:11px; font-weight:600; }
+    .deck { margin-top:20px; } .command-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; } .command { border:1px solid var(--line); border-radius:6px; color:var(--text); background:#18272d; padding:11px 5px; font-size:11px; font-weight:700; } .command:hover,.command.active { border-color:var(--cyan); color:var(--cyan); } .current { margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+    .event { display:flex; gap:13px; padding:11px 0; border-bottom:1px solid var(--line); font-size:11px; } .event:last-child { border:0; } .event time { color:#587079; font:10px 'DM Mono'; } .event b { color:var(--cyan); font:10px 'DM Mono'; min-width:48px; } .event span { color:#c0cdd1; }
+    .upload { display:block; border:1px dashed rgba(104,225,220,.35); border-radius:7px; padding:10px; margin-top:12px; color:var(--muted); font-size:11px; text-align:center; cursor:pointer; } .upload:hover { color:var(--cyan); border-color:var(--cyan); } #file,#video-file { display:none; } .page-nav { display:grid; gap:5px; margin:0 0 25px; } .nav-link { border:1px solid transparent; border-radius:7px; padding:11px 12px; color:var(--muted); background:transparent; text-align:left; font-size:11px; font-weight:700; transition:.2s; } .nav-link:hover,.nav-link.active { color:var(--cyan); border-color:rgba(104,225,220,.25); background:rgba(104,225,220,.07); transform:translateX(3px); } .nav-link span { display:inline-block; width:22px; color:var(--cyan); font-family:'DM Mono'; } .page-view { animation:pageIn .42s ease both; } .page-view.hidden { display:none; } @keyframes pageIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } } .health-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; } .health-card { min-height:145px; } .health-meter { height:6px; background:#203138; border-radius:99px; overflow:hidden; margin:18px 0 9px; } .health-meter i { display:block; height:100%; width:92%; background:var(--lime); border-radius:99px; animation:meterIn 1.2s ease both; } .health-meter.warn i { width:68%; background:var(--orange); } @keyframes meterIn { from { width:0; } } .log-row { display:grid; grid-template-columns:85px 72px 1fr; gap:13px; padding:14px 0; border-bottom:1px solid var(--line); font-size:11px; } .log-row time { color:#587079; font:10px 'DM Mono'; } .log-row b { color:var(--cyan); font:10px 'DM Mono'; } footer { color:#536c75; font:9px 'DM Mono'; text-align:right; margin-top:26px; }
+    @media (max-width:1050px) { .shell { grid-template-columns:190px 1fr; } main { padding:28px 24px; } .grid4 { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:760px) { .shell { display:block; } aside { position:static; min-height:auto; padding:20px; } .side-note { position:static; margin-top:22px; } main { padding:25px 16px 40px; } .top { display:block; } .pill { display:inline-block; margin-top:18px; } .columns,.lower { grid-template-columns:1fr; } .camera { height:330px; } .grid4 { gap:9px; } .metric { min-height:104px; padding:14px; } .metric-value { font-size:20px; } .command-grid { grid-template-columns:repeat(2,1fr); } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="mark">✦</div><div><strong>AERO<span>GUARD</span></strong><small>COMMAND CENTER</small></div></div>
+      <div class="section-label">Mission control</div>
+      <nav class="page-nav" aria-label="Main navigation"><button class="nav-link active" data-page="overview"><span>01</span>Overview</button><button class="nav-link" data-page="detection"><span>02</span>Live detection</button><button class="nav-link" data-page="logs"><span>03</span>Mission log</button><button class="nav-link" data-page="health"><span>04</span>System health</button></nav>
+      <select class="source-select" id="source"><option>Simulation feed</option><option>Live camera</option></select>
+      <label class="upload" for="file">Upload image for preview<input id="file" type="file" accept="image/png,image/jpeg"></label>
+      <label class="upload" for="video-file">Upload patrol video<input id="video-file" type="file" accept="video/mp4,video/webm,video/quicktime"></label>
+      <div class="section-label" style="margin-top:27px">Operator actions</div>
+      <button class="action primary" id="start">Start mission</button>
+      <button class="action" id="pause">Pause mission</button>
+      <button class="action danger" id="stop">Emergency stop</button>
+      <div class="side-note"><b>Connected systems</b><br>YOLOv8 perception engine<br>Voice command channel<br>Telemetry uplink<br><br><span style="color:var(--lime)">● All systems nominal</span></div>
+    </aside>
+    <main>
+      <div class="top"><div><div class="eyebrow" id="page-eyebrow">AIRFIELD SAFETY / OPERATIONS VIEW</div><h1 id="page-title">Mission overview</h1><p class="sub" id="page-sub">Autonomous foreign object detection and obstacle avoidance.</p></div><div class="pill">● SYSTEM ONLINE &nbsp; / &nbsp; <span id="clock">09:41 UTC</span></div></div>
+      <div id="overview-page" class="page-view">
+      <section class="grid4">
+        <div class="panel metric"><div class="metric-label">Mission status</div><div class="metric-value" id="mission-status">STANDBY</div><div class="metric-foot" id="mission-foot">Ready for operator input</div></div>
+        <div class="panel metric"><div class="metric-label">Detection confidence</div><div class="metric-value">94.8%</div><div class="metric-foot">+2.4% this pass</div></div>
+        <div class="panel metric"><div class="metric-label">Battery health</div><div class="metric-value">87%</div><div class="metric-foot">AC power connected</div></div>
+        <div class="panel metric"><div class="metric-label">Uplink latency</div><div class="metric-value">42 ms</div><div class="metric-foot">Telemetry nominal</div></div>
+      </section>
+      <section class="columns">
+        <div>
+          <div class="panel camera"><img id="feed" src="assets/bg.png" alt="Airfield visual feed"><video id="video-feed" controls muted loop playsinline hidden></video><div class="camera-overlay"><div><span class="tag" id="feed-tag">● PERCEPTION FEED / 1280 × 720</span><h3>Airside visual intelligence</h3><p id="feed-label">SOURCE: SIMULATION / YOLOv8 NANO / 24 FPS</p><div class="scan"></div></div><div class="detection-box"></div><div class="detection-box second"></div><div class="analysis-bar"></div><span class="tag" id="threat-tag">AI ANALYSIS ACTIVE / 2 OBJECTS TRACKED</span></div></div>
+          <div class="panel deck"><div class="panel-head">Operator command deck <small>VOICE / MANUAL</small></div><div class="command-grid"><button class="command" data-command="MOVE_FORWARD">↑ Forward</button><button class="command" data-command="TURN_LEFT">← Turn left</button><button class="command" data-command="TURN_RIGHT">Turn right →</button><button class="command" data-command="MOVE_BACKWARD">↓ Reverse</button></div><div class="row current"><span>Current trajectory</span><b id="trajectory">IDLE</b></div></div>
+        </div>
+        <div>
+          <div class="panel"><div class="panel-head">Proximity radar <small>RANGE 100 M</small></div><div class="radar"><i class="dot one"></i><i class="dot two"></i></div><div class="row"><span>Nearest object</span><b style="color:var(--orange)">12.4 m / CONE</b></div><div class="row"><span>Path assessment</span><b style="color:var(--lime)">CLEAR</b></div></div>
+          <div class="panel" style="margin-top:20px"><div class="panel-head">Vehicle telemetry <small>LIVE LINK</small></div><div class="row"><span>GPS position</span><b>40.64130, -73.77810</b></div><div class="row"><span>Heading</span><b>084° NE</b></div><div class="row"><span>Ground speed</span><b>3.2 km/h</b></div><div class="row"><span>Thermal status</span><b style="color:var(--lime)">NOMINAL</b></div></div>
+        </div>
+      </section>
+      <section class="lower">
+        <div class="panel"><div class="panel-head">Activity stream <small>RECENT EVENTS</small></div><div id="events"><div class="event"><time>09:41:12</time><b>SYSTEM</b><span>Perception engine ready</span></div><div class="event"><time>09:40:58</time><b>VOICE</b><span>Awaiting operator command</span></div><div class="event"><time>09:40:44</time><b>LINK</b><span>Telemetry link established</span></div></div></div>
+        <div class="panel"><div class="panel-head">Object register <small>THIS SESSION</small></div><div class="row"><span>Person</span><b>96.2% <em>/ 04</em></b></div><div class="row"><span>Vehicle</span><b>91.7% <em>/ 02</em></b></div><div class="row"><span>Foreign object</span><b style="color:var(--orange)">88.4% <em>/ 01</em></b></div><div class="row"><span>Last scan</span><b>00:00:04 ago</b></div></div>
+      </section>
+      </div>
+      <div id="detection-page" class="page-view hidden"><div class="panel"><div class="panel-head">Live detection laboratory <small>MODEL OUTPUT / YOLOv8 NANO</small></div><div class="camera" style="height:560px"><img src="assets/bg.png" alt="Detection laboratory feed"><div class="camera-overlay"><div><span class="tag">● TRACKING ENGINE ONLINE</span><h3>Frame-by-frame perception</h3><p>Upload a patrol video from the left panel to inspect it here.</p></div><div class="detection-box"></div><div class="detection-box second"></div><span class="tag">2 TRACKS / CONFIDENCE 94.8%</span></div></div></div><div class="grid4" style="margin-top:20px"><div class="panel metric"><div class="metric-label">Frames analysed</div><div class="metric-value">1,284</div><div class="metric-foot">+128 this minute</div></div><div class="panel metric"><div class="metric-label">Objects tracked</div><div class="metric-value">07</div><div class="metric-foot">2 active hazards</div></div><div class="panel metric"><div class="metric-label">Model status</div><div class="metric-value">READY</div><div class="metric-foot">Inference stable</div></div><div class="panel metric"><div class="metric-label">Average FPS</div><div class="metric-value">24.1</div><div class="metric-foot">Edge performance</div></div></div></div>
+      <div id="logs-page" class="page-view hidden"><div class="panel"><div class="panel-head">Mission log <small>ALL EVENTS / TODAY</small></div><div class="log-row"><time>09:41:12</time><b>SYSTEM</b><span>Perception engine ready for patrol.</span></div><div class="log-row"><time>09:40:58</time><b>VOICE</b><span>Awaiting operator command.</span></div><div class="log-row"><time>09:40:44</time><b>LINK</b><span>Telemetry uplink established with rover.</span></div><div class="log-row"><time>09:39:07</time><b>SCAN</b><span>Foreign object identified at 12.4 metres.</span></div><div class="log-row"><time>09:38:51</time><b>MISSION</b><span>Pre-flight diagnostics completed successfully.</span></div></div></div>
+      <div id="health-page" class="page-view hidden"><div class="health-grid"><div class="panel health-card"><div class="panel-head">Perception engine <small>ONLINE</small></div><div class="metric-foot">YOLOv8 NANO / INFERENCE</div><div class="health-meter"><i></i></div><div class="row"><span>Load</span><b>42%</b></div></div><div class="panel health-card"><div class="panel-head">Telemetry uplink <small>STABLE</small></div><div class="metric-foot">SECURE RADIO CHANNEL</div><div class="health-meter"><i></i></div><div class="row"><span>Signal</span><b>98%</b></div></div><div class="panel health-card"><div class="panel-head">Battery system <small>CHARGING</small></div><div class="metric-foot">AC POWER CONNECTED</div><div class="health-meter"><i></i></div><div class="row"><span>Capacity</span><b>87%</b></div></div><div class="panel health-card"><div class="panel-head">Voice channel <small>READY</small></div><div class="metric-foot">NEURAL AUDIO PIPELINE</div><div class="health-meter warn"><i></i></div><div class="row"><span>Input quality</span><b>68%</b></div></div></div></div>
+      <footer>AEROGUARD PROTOTYPE INTERFACE / SUPERVISION REQUIRED FOR SAFETY-CRITICAL OPERATIONS</footer>
+    </main>
+  </div>
+  <script>
+    const status = document.getElementById('mission-status');
+    const foot = document.getElementById('mission-foot');
+    const trajectory = document.getElementById('trajectory');
+    const events = document.getElementById('events');
+    function addEvent(kind, message) {
+      const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+      events.insertAdjacentHTML('afterbegin', `<div class="event"><time>${now}</time><b>${kind}</b><span>${message}</span></div>`);
+      while (events.children.length > 4) events.lastElementChild.remove();
+    }
+    document.getElementById('start').onclick = () => { status.textContent='PATROLLING'; foot.textContent='Autonomous patrol active'; addEvent('MISSION','Autonomous patrol started'); };
+    document.getElementById('pause').onclick = () => { status.textContent='STANDBY'; foot.textContent='Ready for operator input'; trajectory.textContent='IDLE'; addEvent('MISSION','Patrol paused by operator'); };
+    document.getElementById('stop').onclick = () => { status.textContent='STOPPED'; status.style.color='var(--red)'; foot.textContent='Emergency braking engaged'; trajectory.textContent='EMERGENCY STOP'; addEvent('ALERT','Emergency braking engaged'); };
+    document.querySelectorAll('[data-command]').forEach(button => button.onclick = () => { document.querySelectorAll('.command').forEach(item => item.classList.remove('active')); button.classList.add('active'); const command = button.dataset.command.replaceAll('_',' '); trajectory.textContent=command; addEvent('COMMAND', `${button.textContent.trim()} command acknowledged`); });
+    let cameraStream = null;
+    let cameraAnalysisTimer = null;
+    async function stopCamera() { if (cameraAnalysisTimer) { clearInterval(cameraAnalysisTimer); cameraAnalysisTimer = null; } if (!cameraStream) return; cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
+    async function analyseCameraFrame() { const video = document.getElementById('video-feed'); if (!cameraStream || video.readyState < 2) return; const canvas = document.createElement('canvas'); canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 360; canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); canvas.toBlob(async blob => { if (!blob) return; try { const result = await sendMedia(new File([blob], 'camera-frame.jpg', { type: 'image/jpeg' }), '/api/detect-image'); document.getElementById('threat-tag').textContent = `LIVE YOLO / ${result.count} OBJECTS / ${result.highest_confidence}%`; } catch (error) { document.getElementById('threat-tag').textContent = 'LIVE CAMERA / AI PREVIEW MODE'; } }, 'image/jpeg', .82); }
+    document.getElementById('source').onchange = async event => {
+      const source = event.target.value;
+      const feed = document.getElementById('feed');
+      const video = document.getElementById('video-feed');
+      if (source === 'Live camera') {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { document.getElementById('feed-label').textContent = 'LIVE CAMERA UNAVAILABLE / USE LOCALHOST OR HTTPS'; addEvent('CAMERA', 'Browser camera API unavailable'); return; }
+        try {
+          await stopCamera();
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' }, audio: false });
+          video.srcObject = cameraStream; video.hidden = false; feed.hidden = true; video.controls = false; await video.play();
+          document.getElementById('feed-label').textContent = 'SOURCE: LIVE CAMERA / YOLOv8 NANO / STREAMING';
+          document.getElementById('feed-tag').textContent = '● LIVE CAMERA / CONNECTED';
+          document.getElementById('threat-tag').textContent = 'CAMERA STREAM ACTIVE / AI OVERLAY READY';
+          cameraAnalysisTimer = setInterval(analyseCameraFrame, 2000);
+          addEvent('CAMERA', 'Live camera connected successfully');
+        } catch (error) {
+          event.target.value = 'Simulation feed';
+          document.getElementById('feed-label').textContent = 'CAMERA ACCESS DENIED / SIMULATION ACTIVE';
+          document.getElementById('feed-tag').textContent = '● SIMULATION FEED / FALLBACK';
+          addEvent('CAMERA', error.name === 'NotAllowedError' ? 'Camera permission was denied' : 'No camera device found');
+        }
+      } else {
+        await stopCamera(); video.srcObject = null; video.hidden = true; feed.hidden = false; video.controls = true;
+        document.getElementById('feed-label').textContent = 'SOURCE: SIMULATION / YOLOv8 NANO / 24 FPS';
+        document.getElementById('feed-tag').textContent = '● PERCEPTION FEED / 1280 × 720';
+        addEvent('SOURCE', 'Switched to simulation feed');
+      }
+    };
+    const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+    async function sendMedia(file, endpoint) { const body = new FormData(); body.append('file', file); const response = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body }); const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Backend detection failed'); return result; }
+    document.getElementById('file').onchange = async event => { const file = event.target.files[0]; if (!file) return; const feed = document.getElementById('feed'); const video = document.getElementById('video-feed'); feed.src = URL.createObjectURL(file); feed.hidden = false; video.hidden = true; document.getElementById('feed-label').textContent = 'SOURCE: UPLOADED FRAME / ANALYSING WITH YOLO'; try { const result = await sendMedia(file, '/api/detect-image'); document.getElementById('threat-tag').textContent = `YOLO COMPLETE / ${result.count} OBJECTS / ${result.highest_confidence}%`; addEvent('AI', `${result.count} object(s) detected from uploaded image`); } catch (error) { document.getElementById('threat-tag').textContent = 'PREVIEW ONLY / API OFFLINE'; addEvent('API', 'Image preview loaded; backend unavailable'); } };
+    document.getElementById('video-file').onchange = async event => { const file = event.target.files[0]; if (!file) return; const feed = document.getElementById('feed'); const video = document.getElementById('video-feed'); video.src = URL.createObjectURL(file); video.hidden = false; feed.hidden = true; video.play().catch(() => {}); document.getElementById('feed-label').textContent = 'SOURCE: UPLOADED VIDEO / ANALYSING WITH YOLO'; document.getElementById('feed-tag').textContent = '● VIDEO FEED / LIVE ANALYSIS'; try { const result = await sendMedia(file, '/api/detect-video'); document.getElementById('threat-tag').textContent = `YOLO COMPLETE / ${result.count} OBJECTS / ${result.highest_confidence}%`; addEvent('AI', `${result.count} object(s) detected in uploaded video`); } catch (error) { document.getElementById('threat-tag').textContent = 'PREVIEW ONLY / API OFFLINE'; addEvent('API', `${file.name} preview loaded; backend unavailable`); } };
+    const pageCopy = { overview:['AIRFIELD SAFETY / OPERATIONS VIEW','Mission overview','Autonomous foreign object detection and obstacle avoidance.'], detection:['PERCEPTION / MODEL OUTPUT','Live detection','Inspect every frame with confidence-aware tracking.'], logs:['OPERATIONS / AUDIT TRAIL','Mission log','A clear timeline of every command, scan, and system event.'], health:['SYSTEMS / DIAGNOSTICS','System health','Monitor the intelligence, telemetry, power, and voice layers.'] };
+    document.querySelectorAll('.nav-link').forEach(link => link.onclick = () => { const page = link.dataset.page; document.querySelectorAll('.nav-link').forEach(item => item.classList.toggle('active', item === link)); document.querySelectorAll('.page-view').forEach(view => view.classList.toggle('hidden', view.id !== `${page}-page`)); document.getElementById('page-eyebrow').textContent = pageCopy[page][0]; document.getElementById('page-title').textContent = pageCopy[page][1]; document.getElementById('page-sub').textContent = pageCopy[page][2]; document.querySelectorAll('.page-view:not(.hidden)').forEach(view => { view.classList.remove('page-view'); void view.offsetWidth; view.classList.add('page-view'); }); });
+    setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:false}) + ' UTC'; }, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Local media assets are too large for normal GitHub commits
+*.mp4
+*.mov
+*.avi
+
+# Python cache and local secrets
+__pycache__/
+*.py[cod]
+.env
+.streamlit/secrets.toml

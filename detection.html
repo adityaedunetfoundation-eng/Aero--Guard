@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Detection | AeroGuard</title>
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="logo" href="home.html"><i>✦</i>AERO<span>GUARD</span></a>
+    <nav>
+      <a href="home.html">Home</a><a href="about.html">About</a><a class="active" href="detection.html">Detection</a><a href="contact.html">Operations</a><a class="nav-cta" href="index.html">Command center</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <section class="page-hero">
+      <div class="eyebrow">PERCEPTION LAB / UPLOAD AND INSPECT</div>
+      <h1>Turn patrol footage into an operating picture.</h1>
+      <p>Drop in a local patrol clip and review it with the YOLO-powered tracking response.</p>
+    </section>
+    <section class="video-box">
+      <video id="patrol" controls muted loop playsinline poster="assets/bg.png"></video>
+      <div class="track"></div><div class="track" style="left:23%;top:51%;width:15%;height:18%"></div>
+    </section>
+    <label class="drop" for="video-input">Choose a patrol video to analyse<input id="video-input" type="file" accept="video/mp4,video/webm,video/quicktime"></label>
+    <div class="stats">
+      <div class="stat"><b id="state">READY</b><span>Analysis state</span></div>
+      <div class="stat"><b id="tracked-count">02</b><span>Tracked objects</span></div>
+      <div class="stat"><b id="confidence">94.8%</b><span>Confidence</span></div>
+      <div class="stat"><b id="frames">24 FPS</b><span>Target stream</span></div>
+    </div>
+    <p id="api-note" class="mono" style="color:var(--muted);margin-top:18px">API: CHECKING LOCAL VISION SERVICE...</p>
+    <section class="section"><div class="cards">
+      <article class="card"><div class="icon">□</div><h3>Object localization</h3><p>Bounding-box tracking keeps the operator focused on where the risk is.</p></article>
+      <article class="card"><div class="icon">◌</div><h3>Confidence scoring</h3><p>Every visual signal is paired with a confidence score for faster human review.</p></article>
+      <article class="card"><div class="icon">↯</div><h3>Hazard response</h3><p>Detection flows into the command center for navigation decisions and alerts.</p></article>
+    </div></section>
+  </main>
+  <footer class="footer wrap">AEROGUARD / PERCEPTION LAB / SUPERVISED PROTOTYPE</footer>
+  <script>
+    const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+    const note = document.getElementById('api-note');
+    fetch(`${API_BASE}/api/health`).then(response => response.json()).then(result => {
+      note.textContent = result.model_available ? 'API: ONLINE / YOLO MODEL READY' : 'API: ONLINE / INSTALL ULTRALYTICS FOR MODEL INFERENCE';
+      note.style.color = result.model_available ? 'var(--lime)' : 'var(--orange)';
+    }).catch(() => { note.textContent = 'API: OFFLINE / PREVIEW MODE'; note.style.color = 'var(--orange)'; });
+    document.getElementById('video-input').onchange = async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const video = document.getElementById('patrol');
+      video.src = URL.createObjectURL(file);
+      video.play().catch(() => {});
+      document.getElementById('state').textContent = 'ANALYSING';
+      const body = new FormData();
+      body.append('file', file);
+      try {
+        const response = await fetch(`${API_BASE}/api/detect-video`, { method: 'POST', body });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Detection failed');
+        document.getElementById('state').textContent = 'ANALYSED';
+        document.getElementById('tracked-count').textContent = String(result.count).padStart(2, '0');
+        document.getElementById('confidence').textContent = `${result.highest_confidence}%`;
+        document.getElementById('frames').textContent = `${result.frames_sampled} SAMPLES`;
+        note.textContent = 'API: VIDEO ANALYSIS COMPLETE';
+        note.style.color = 'var(--lime)';
+      } catch (error) {
+        document.getElementById('state').textContent = 'PREVIEW ONLY';
+        note.textContent = `API: ${error.message}`;
+        note.style.color = 'var(--orange)';
+      }
+    };
+  </script>
+</body>
+</html>
