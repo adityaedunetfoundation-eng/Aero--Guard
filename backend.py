@@ -19,6 +19,7 @@ app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
 CORS(app)
 
 MODEL_PATH = os.path.join(BASE_DIR, "yolov8n.pt")
+# Keep the detector focused on airport-relevant obstacles and aircraft.
 TARGET_CLASSES = [0, 2, 4, 7, 24, 28]
 model = None
 model_lock = Lock()
@@ -59,7 +60,8 @@ def navigation_decision(detections, frame_shape):
     if not detections:
         return {"action": "MOVE_FORWARD", "reason": "Path clear"}
     frame_height, frame_width = frame_shape[:2]
-    x1, y1, x2, y2 = detections[0]["box"]
+    target = max(detections, key=lambda item: (item["box"][2] - item["box"][0]) * (item["box"][3] - item["box"][1]))
+    x1, y1, x2, y2 = target["box"]
     center = ((x1 + x2) / 2) / frame_width
     height_ratio = (y2 - y1) / frame_height
     if height_ratio > 0.42 and 0.33 < center < 0.67:
@@ -70,17 +72,18 @@ def navigation_decision(detections, frame_shape):
         action = "TURN_LEFT"
     else:
         action = "MOVE_FORWARD"
-    return {"action": action, "reason": f"Avoiding {detections[0]['label']}"}
+    return {"action": action, "reason": f"Avoiding {target['label']}"}
 
 
 def run_image(frame):
-    predictions = get_model()(frame, conf=0.35, classes=TARGET_CLASSES, verbose=False)
+    predictions = get_model()(frame, conf=0.50, classes=TARGET_CLASSES, verbose=False)
     detections = serialize_result(predictions[0])
     return {
         "detections": detections,
         "count": len(detections),
         "highest_confidence": max((item["confidence"] for item in detections), default=0),
         "navigation": navigation_decision(detections, frame.shape),
+        "frame_size": {"width": frame.shape[1], "height": frame.shape[0]},
     }
 
 
