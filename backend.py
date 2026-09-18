@@ -2,6 +2,9 @@ import os
 import tempfile
 from threading import Lock
 
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+
 import cv2
 import numpy as np
 from flask import Flask, jsonify, request, send_from_directory
@@ -90,12 +93,16 @@ def navigation_decision(detections, frame_shape):
 
 
 def run_image(frame):
+    source_height, source_width = frame.shape[:2]
+    scale = min(1.0, 384 / max(source_width, source_height))
+    if scale < 1.0:
+        frame = cv2.resize(frame, (round(source_width * scale), round(source_height * scale)), interpolation=cv2.INTER_AREA)
     predictions = get_model()(
         frame,
         conf=0.50,
         classes=TARGET_CLASSES,
-        imgsz=416,
-        max_det=10,
+        imgsz=256,
+        max_det=5,
         device="cpu",
         verbose=False,
     )
