@@ -39,9 +39,9 @@ except Exception as e:
     raise SystemExit("System terminating. Fix your API key or network before continuing.")
 
 # --- GLOBAL SHARED MEMORY ---
-system_status = "STANDBY - Awaiting Wake Word"
-latest_command = "IDLE"
-intended_trajectory = "IDLE" 
+system_status = "AUTONOMOUS PATROL - VIDEO NAVIGATION"
+latest_command = "MOVE_FORWARD"
+intended_trajectory = "MOVE_FORWARD"
 camera_mode_request = None
 
 # --- TELEMETRY DATA ---

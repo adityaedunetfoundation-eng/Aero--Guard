@@ -55,6 +55,24 @@ def serialize_result(result):
     return detections
 
 
+def navigation_decision(detections, frame_shape):
+    if not detections:
+        return {"action": "MOVE_FORWARD", "reason": "Path clear"}
+    frame_height, frame_width = frame_shape[:2]
+    x1, y1, x2, y2 = detections[0]["box"]
+    center = ((x1 + x2) / 2) / frame_width
+    height_ratio = (y2 - y1) / frame_height
+    if height_ratio > 0.42 and 0.33 < center < 0.67:
+        action = "EMERGENCY_STOP"
+    elif center <= 0.33:
+        action = "TURN_RIGHT"
+    elif center >= 0.67:
+        action = "TURN_LEFT"
+    else:
+        action = "MOVE_FORWARD"
+    return {"action": action, "reason": f"Avoiding {detections[0]['label']}"}
+
+
 def run_image(frame):
     predictions = get_model()(frame, conf=0.35, classes=TARGET_CLASSES, verbose=False)
     detections = serialize_result(predictions[0])
@@ -62,6 +80,7 @@ def run_image(frame):
         "detections": detections,
         "count": len(detections),
         "highest_confidence": max((item["confidence"] for item in detections), default=0),
+        "navigation": navigation_decision(detections, frame.shape),
     }
 
 
