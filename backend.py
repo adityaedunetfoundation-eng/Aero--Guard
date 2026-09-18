@@ -123,8 +123,9 @@ def detect_image():
         return jsonify({"error": "Could not decode image"}), 400
     try:
         return jsonify(run_image(frame))
-    except RuntimeError as error:
-        return jsonify({"error": str(error)}), 503
+    except Exception as error:
+        app.logger.exception("Image detection failed")
+        return jsonify({"error": f"Image detection failed: {error}"}), 503
 
 
 @app.post("/api/detect-video")
