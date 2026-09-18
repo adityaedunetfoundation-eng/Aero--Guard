@@ -76,7 +76,15 @@ def navigation_decision(detections, frame_shape):
 
 
 def run_image(frame):
-    predictions = get_model()(frame, conf=0.50, classes=TARGET_CLASSES, verbose=False)
+    predictions = get_model()(
+        frame,
+        conf=0.50,
+        classes=TARGET_CLASSES,
+        imgsz=416,
+        max_det=10,
+        device="cpu",
+        verbose=False,
+    )
     detections = serialize_result(predictions[0])
     return {
         "detections": detections,
