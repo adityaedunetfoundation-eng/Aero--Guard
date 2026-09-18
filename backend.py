@@ -3,6 +3,7 @@ import tempfile
 from threading import Lock
 
 import cv2
+import numpy as np
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
@@ -23,6 +24,7 @@ MODEL_PATH = os.path.join(BASE_DIR, "yolov8n.pt")
 TARGET_CLASSES = [0, 2, 4, 7, 24, 28]
 model = None
 model_lock = Lock()
+MODEL_LOAD_ERROR = ""
 
 
 @app.get("/")
@@ -31,14 +33,26 @@ def home_page():
 
 
 def get_model():
-    global model
+    global model, MODEL_LOAD_ERROR
     if YOLO is None:
         raise RuntimeError(f"YOLO is unavailable in this environment: {YOLO_IMPORT_ERROR}")
     if model is None:
         with model_lock:
             if model is None:
-                model = YOLO(MODEL_PATH)
+                try:
+                    model = YOLO(MODEL_PATH)
+                except Exception as error:
+                    MODEL_LOAD_ERROR = str(error)
+                    raise RuntimeError(f"YOLO model could not be loaded: {error}") from error
     return model
+
+
+def warm_model():
+    """Load and warm YOLO before the first browser request, including Gunicorn startup."""
+    try:
+        get_model()(np.zeros((320, 320, 3), dtype=np.uint8), imgsz=320, device="cpu", verbose=False)
+    except Exception as error:
+        app.logger.warning("YOLO warm-up failed: %s", error)
 
 
 def serialize_result(result):
@@ -108,7 +122,7 @@ def health():
         "status": "online",
         "model_available": YOLO is not None and os.path.exists(MODEL_PATH),
         "model": "yolov8n.pt",
-        "model_error": YOLO_IMPORT_ERROR,
+        "model_error": MODEL_LOAD_ERROR or YOLO_IMPORT_ERROR,
     })
 
 
@@ -181,6 +195,9 @@ def detect_video():
     finally:
         if temporary_path and os.path.exists(temporary_path):
             os.remove(temporary_path)
+
+
+warm_model()
 
 
 if __name__ == "__main__":
